@@ -48,7 +48,7 @@ function Login() {
   };
 
   // Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const validationErrors = validate(form);
@@ -57,11 +57,30 @@ function Login() {
     if (Object.keys(validationErrors).length === 0) {
       setLoading(true);
 
-      // Simulate login process
-      setTimeout(() => {
+      try {
+        const response = await fetch('http://localhost:8000/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem('token', data.access_token);
+          navigate('/form');
+        } else {
+          setErrors({ general: 'Invalid credentials' });
+        }
+      } catch (error) {
+        setErrors({ general: 'Network error' });
+      } finally {
         setLoading(false);
-        navigate("/dashboard");
-      }, 1200);
+      }
     }
   };
 

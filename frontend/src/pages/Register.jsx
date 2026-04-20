@@ -37,7 +37,7 @@ function Register() {
     setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (
@@ -70,7 +70,31 @@ function Register() {
       return;
     }
 
-    navigate("/form");
+    try {
+      const response = await fetch('http://localhost:8000/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: form.fullName,
+          age: parseInt(form.age),
+          occupation: form.occupation,
+          email: form.email,
+          password: form.password,
+          confirm_password: form.confirmPassword,
+        }),
+      });
+
+      if (response.ok) {
+        navigate('/login');
+      } else {
+        const data = await response.json();
+        setError(data.detail || 'Registration failed');
+      }
+    } catch (error) {
+      setError('Network error');
+    }
   };
 
   return (

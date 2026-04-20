@@ -86,7 +86,7 @@ function FormPage() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const {
@@ -141,7 +141,44 @@ function FormPage() {
       return;
     }
 
-    navigate("/dashboard");
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError("No token found. Please login again.");
+      return;
+    }
+
+    const payload = {
+      monthly_salary: parseInt(salary),
+      expected_savings: parseInt(savings),
+      subscriptions: [
+        { category: "EMI", amount: parseInt(emi) },
+        { category: "Rent", amount: parseInt(rent) },
+        { category: "Subscriptions", amount: parseInt(subscriptions) },
+        { category: "SIP", amount: parseInt(sip) },
+        { category: "Insurance", amount: parseInt(insurance) },
+        { category: "Others", amount: parseInt(others) },
+      ],
+    };
+
+    try {
+      const response = await fetch('http://localhost:8000/subscriptions/setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        navigate("/dashboard");
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to save financial data');
+      }
+    } catch (error) {
+      setError('Network error');
+    }
   };
 
   return (
